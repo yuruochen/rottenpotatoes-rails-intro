@@ -11,38 +11,23 @@ class MoviesController < ApplicationController
   end
 
   def index
-    @all_ratings = Movie.all_ratings
-    redirect = false
+       @all_ratings = Movie.all_ratings
     if !session.has_key? :ratings
-	Movie.all_ratings.each do |ra|
-            (session[:ratings] ||= { })[ra] = 1
-        end
+       session[:ratings] = Movie.all_ratings
     end
-    if params[:ratings]       
-        @ratings = params[:ratings]
-    elsif session[:ratings]
-	@ratings = session[:ratings]
-	redirect = true   
-    end
-    if params[:sort]
-	@sort = params[:sort]
-    elsif session[:sort]
-	@sort = session[:sort]
-	redirect = true
-    end      
-    @movies = Movie.where(rating: @ratings.keys) 
-    if @sort == 'title'
-       @movies = @movies.where(rating: @ratings.keys).order('title ASC')
+    if params[:sort]=='title'
+       @movies = Movie.order('title ASC')
        @title_hilite = 'hilite'
-    elsif @sort == 'date'
-       @movies = @movies.where(rating: @ratings.keys).order('release_date ASC')
+    elsif params[:sort]=='date'
+       @movies = Movie.order('release_date ASC')
        @release_date_hilite = 'hilite'
+    else  
+       @movies = Movie.all
     end
-    if redirect
-       redirect_to movies_path(:sort => @sort, :ratings => @ratings)
-    end
-       session[:sort] = @sort
-       session[:ratings] = @ratings
+    if params[:ratings] 
+       @movies = @movies.where(rating: params[:ratings].keys)	
+       session[:ratings] = params[:ratings].keys	 
+    end 
   end
 
   def new
@@ -74,3 +59,4 @@ class MoviesController < ApplicationController
   end
 
 end
+
